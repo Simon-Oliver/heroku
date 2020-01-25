@@ -5,7 +5,8 @@ import './App.css';
 class App extends React.Component {
   state = {
     lat: '',
-    long: ''
+    long: '',
+    message: ''
   };
 
   componentDidMount() {
@@ -15,7 +16,17 @@ class App extends React.Component {
 
     fetch('/api/hello')
       .then(res => res.json())
-      .then(data => console.log(data));
+      .then(data => this.setState({ message: data.express }));
+
+    var layer = window.ga.layer.create('ch.swisstopo.pixelkarte-farbe');
+    var map = new window.ga.Map({
+      target: 'map',
+      layers: [layer],
+      view: new window.ol.View({
+        resolution: 500,
+        center: [this.lat, this.long]
+      })
+    });
   }
 
   getPosition = position => {
@@ -40,6 +51,8 @@ class App extends React.Component {
           </a>
           <h2>Lat: {this.state.lat}</h2>
           <h2>Long: {this.state.long}</h2>
+          <h3>{this.state.message}</h3>
+          <div id="map" class="map"></div>
         </header>
       </div>
     );
