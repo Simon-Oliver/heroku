@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+
+  },
+  "dependencies": {
+    "express":"*",
+  "body-parser":"*"
   },
   "author": "",
   "license": "ISC",
