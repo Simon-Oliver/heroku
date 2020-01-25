@@ -12,6 +12,10 @@ class App extends React.Component {
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(this.getPosition);
     }
+
+    fetch('/api/hello')
+      .then(res => res.json())
+      .then(data => console.log(data));
   }
 
   getPosition = position => {
