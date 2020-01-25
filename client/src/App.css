@@ -36,3 +36,15 @@
     transform: rotate(360deg);
   }
 }
+
+.container {
+  position: relative;
+  height: 580px;
+  width: 600px;
+}
+
+.mapContainer {
+  position: relative;
+  height: inherit;
+  width: inherit;
+}
