@@ -11,7 +11,21 @@ class App extends React.Component {
     long: '',
     message: '',
     acc: '',
-    zoom: '2'
+    zoom: '2',
+    other: [
+      {
+        id: 'Test1',
+        lat: 47.350242,
+        Long: 8.715513,
+        color: '#00000f'
+      },
+      {
+        id: 'Test2',
+        lat: 47.350262,
+        Long: 8.715533,
+        color: '#e24f4f'
+      }
+    ]
   };
 
   componentDidMount() {
@@ -53,109 +67,58 @@ class App extends React.Component {
       })
     );
 
-    var size = 100;
-
-    // implementation of CustomLayerInterface to draw a pulsing dot icon on the map
-    // see https://docs.mapbox.com/mapbox-gl-js/api/#customlayerinterface for more info
-    var pulsingDot = {
-      width: size,
-      height: size,
-      data: new Uint8Array(size * size * 4),
-
-      // get rendering context for the map canvas when layer is added to the map
-      onAdd: function() {
-        var canvas = document.createElement('canvas');
-        canvas.width = this.width;
-        canvas.height = this.height;
-        this.context = canvas.getContext('2d');
-      },
-
-      // called once before every frame where the icon will be used
-      render: function() {
-        var duration = 1000;
-        var t = (performance.now() % duration) / duration;
-
-        var radius = (size / 2) * 0.3;
-        var outerRadius = (size / 2) * 0.7 * t + radius;
-        var context = this.context;
-
-        // draw outer circle
-        context.clearRect(0, 0, this.width, this.height);
-        context.beginPath();
-        context.arc(this.width / 2, this.height / 2, outerRadius, 0, Math.PI * 2);
-        context.fillStyle = 'rgba(255, 200, 200,' + (1 - t) + ')';
-        context.fill();
-
-        // draw inner circle
-        context.beginPath();
-        context.arc(this.width / 2, this.height / 2, radius, 0, Math.PI * 2);
-        context.fillStyle = 'rgba(255, 100, 100, 1)';
-        context.strokeStyle = 'white';
-        context.lineWidth = 2 + 4 * (1 - t);
-        context.fill();
-        context.stroke();
-
-        // update this image's data with data from the canvas
-        this.data = context.getImageData(0, 0, this.width, this.height).data;
-
-        // continuously repaint the map, resulting in the smooth animation of the dot
-        map.triggerRepaint();
-
-        // return `true` to let the map know that the image was updated
-        return true;
-      }
-    };
-
     map.on('load', () => {
-      map.loadImage(
-        'https://upload.wikimedia.org/wikipedia/commons/a/a8/Ski_trail_rating_symbol_black_circle.png',
-        function(error, image) {
-          if (error) throw error;
-          map.addImage('cat', image, {
-            sdf: 'true'
-          });
-          map.addLayer({
-            id: 'drone',
-            type: 'symbol',
-            source: 'drone',
-            layout: {
-              'icon-image': 'cat',
-              'icon-size': 0.05,
-              'icon-allow-overlap': true
-            },
-            paint: {
-              'icon-color': '#00000f'
-            }
-          });
-        }
-      );
-      window.setInterval(() => {
-        const geoJson = {
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: [this.state.long, this.state.lat]
-          }
-        };
-        console.log(geoJson);
-        map.getSource('drone').setData(geoJson);
-      }, 2000);
-
-      map.addSource('drone', {
-        type: 'geojson',
-        data: {
-          type: 'FeatureCollection',
-          features: [
-            {
-              type: 'Feature',
-              properties: {},
-              geometry: {
-                type: 'Point',
-                coordinates: [-76.53063297271729, 39.18174077994108]
+      this.state.other.forEach((e, i) => {
+        map.loadImage(
+          'https://upload.wikimedia.org/wikipedia/commons/a/a8/Ski_trail_rating_symbol_black_circle.png',
+          function(error, image) {
+            if (error) throw error;
+            map.addImage(`circle${e.id}`, image, {
+              sdf: 'true'
+            });
+            map.addLayer({
+              id: e.id,
+              type: 'symbol',
+              source: e.id,
+              layout: {
+                'icon-image': `circle${e.id}`,
+                'icon-size': 0.05,
+                'icon-allow-overlap': true
+              },
+              paint: {
+                'icon-color': e.color
               }
+            });
+          }
+        );
+        window.setInterval(() => {
+          const geoJson = {
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: [this.state.long + i, this.state.lat + i]
             }
-          ]
-        }
+          };
+          console.log(geoJson);
+          map.getSource(e.id).setData(geoJson);
+        }, 2000);
+
+        map.addSource(e.id, {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: [
+              {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                  type: 'Point',
+                  coordinates: [-76.53063297271729, 39.18174077994108]
+                }
+              }
+            ]
+          }
+        });
       });
     });
 
@@ -194,15 +157,17 @@ class App extends React.Component {
   render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <h2>Lat: {this.state.lat}</h2>
-          <h2>Long: {this.state.long}</h2>
-          <h2>Accuracy: {this.state.acc} meters</h2>
-          <h3>{this.state.message}</h3>
-          <div className="container">
-            <div ref={el => (this.mapContainer = el)} className="mapContainer" />
-          </div>
-        </header>
+        <header className="App-header"></header>
+        <div className="aligner">
+          <h3>My Position: </h3>
+          <p>Lat: {parseFloat(this.state.lat).toFixed(2)}</p>
+          <p>Long: {parseFloat(this.state.long).toFixed(2)}</p>
+          <p>Accuracy: {this.state.acc} meters</p>
+        </div>
+        <p>{this.state.message}</p>
+        <div className="container">
+          <div ref={el => (this.mapContainer = el)} className="mapContainer" />
+        </div>
       </div>
     );
   }
