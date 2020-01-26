@@ -1,7 +1,13 @@
 import React from 'react';
 import mapboxgl from 'mapbox-gl';
+import { w3cwebsocket as W3CWebSocket } from 'websocket';
 import './App.css';
 
+const client = new W3CWebSocket('ws://192.168.1.3:8080');
+
+const socketProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const echoSocketUrl = socketProtocol + '//' + window.location.hostname + '/echo';
+//const client = new WebSocket('ws://192.168.1.1:3000');
 mapboxgl.accessToken =
   'pk.eyJ1Ijoic2ltb24tb2xpdmVyIiwiYSI6ImNrNXUyZ2U4bDBxeXQzbmxvY3piaXA3eXcifQ.XL9r5bMRqb-yAyHi0dRj3Q';
 
@@ -28,7 +34,12 @@ class App extends React.Component {
     ]
   };
 
+  //ws = new WebSocket('ws://192.168.1:3000'); //'wss://localhost:5000/' 'ws://192.168.1:8000'
   componentDidMount() {
+    client.onopen = socket => {
+      console.log('WebSocket Client Connected', socket);
+    };
+
     var options = {
       enableHighAccuracy: true,
       timeout: 5000,
@@ -163,6 +174,7 @@ class App extends React.Component {
           <p>Lat: {parseFloat(this.state.lat).toFixed(2)}</p>
           <p>Long: {parseFloat(this.state.long).toFixed(2)}</p>
           <p>Accuracy: {this.state.acc} meters</p>
+          <p>Accuracy: {this.state.message} meters</p>
         </div>
         <p>{this.state.message}</p>
         <div className="container">
