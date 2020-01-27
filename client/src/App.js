@@ -3,10 +3,12 @@ import mapboxgl from 'mapbox-gl';
 import { w3cwebsocket as W3CWebSocket } from 'websocket';
 import './App.css';
 
-const client = new W3CWebSocket('ws://192.168.1.3:8080');
-
 const socketProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-const echoSocketUrl = socketProtocol + '//' + window.location.hostname + '/echo';
+const echoSocketUrl = socketProtocol + '//' + window.location.hostname + ':8080';
+
+const wsUrl = echoSocketUrl.includes('localhost') ? 'ws://192.168.1.3:8080' : echoSocketUrl;
+
+const client = new W3CWebSocket(wsUrl);
 //const client = new WebSocket('ws://192.168.1.1:3000');
 mapboxgl.accessToken =
   'pk.eyJ1Ijoic2ltb24tb2xpdmVyIiwiYSI6ImNrNXUyZ2U4bDBxeXQzbmxvY3piaXA3eXcifQ.XL9r5bMRqb-yAyHi0dRj3Q';
