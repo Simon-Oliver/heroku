@@ -53,6 +53,13 @@ class App extends React.Component {
 
       this.setState({ lat: crd.latitude, long: crd.longitude, acc: crd.accuracy });
       console.log(`More or less ${crd.accuracy} meters.`);
+      client.send(
+        JSON.stringify({
+          lat: crd.latitude,
+          long: crd.longitude,
+          acc: crd.accuracy
+        })
+      );
     };
 
     const error = err => {

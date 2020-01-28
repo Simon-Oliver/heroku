@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
+const uuid = require('uuid');
 
 // Websocket
 // Optional. You will see this name in eg. 'ps' or 'top' command
@@ -8,6 +9,9 @@ const path = require('path');
 var webSocketsServerPort = 8080; // websocket and http servers
 var webSocketServer = require('websocket').server;
 var http = require('http');
+
+//Temp. geo locations
+let tempLoc = [];
 
 // list of currently connected clients (users)
 var clients = [];
@@ -54,43 +58,22 @@ wsServer.on('request', function(request) {
   // (http://en.wikipedia.org/wiki/Same_origin_policy)
   var connection = request.accept(null, request.origin);
   // we need to know client index to remove them on 'close' event
+  connection.id = uuid.v4();
   let index = clients.push(connection);
   console.log(new Date() + ' Connection accepted.');
   console.log('Connected ---------------------- ', connection.id);
+  console.log(tempLoc);
 
   // user sent some message
   connection.on('message', function(message) {
     console.log('message ws fired');
     if (message.type === 'utf8') {
-      const data = JSON.parse(message.utf8Data);
+      let data = JSON.parse(message.utf8Data);
+      data.id = connection.id;
+      let finalData = tempLoc.filter(e => e.id !== connection.id);
+      tempLoc = [...finalData, data];
+
       console.log('ws socket received -----', data);
-
-      const { order, userID, userName } = data;
-      //console.log('-------order_____', order);
-      const neworder = new Order({
-        name: userName,
-        orderFrom: userID,
-        tableNum: '99',
-        orderItems: order,
-        notes: '',
-        orderIn: Date(),
-        orderOut: ''
-      });
-
-      neworder.save((err, doc) => {
-        if (err) {
-          console.log(err);
-        }
-        console.log('Saved', doc);
-        Order.find({})
-          .select('-__v -createdAt -updatedAt')
-          .then(items => {
-            // console.log('ITEMS____________>>>>', items);
-            clients.forEach(function(client) {
-              client.sendUTF(JSON.stringify({ type: 'order', data: items }));
-            });
-          });
-      });
     }
   });
 
