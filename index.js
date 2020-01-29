@@ -2,13 +2,17 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const uuid = require('uuid');
+const WebSocket = require('ws').Server;
+//const WebSocket = require('websocket').server;
+
+const port = process.env.PORT || 8000;
 
 // Websocket
 // Optional. You will see this name in eg. 'ps' or 'top' command
 //process.title = 'node-chat'; // Port where we'll run the websocket server
-var webSocketsServerPort = 8080; // websocket and http servers
-var webSocketServer = require('websocket').server;
-var http = require('http');
+//var webSocketsServerPort = 8080; // websocket and http servers
+// var webSocketServer = require('websocket').server;
+// var http = require('http');
 
 //Temp. geo locations
 let tempLoc = [];
@@ -18,24 +22,31 @@ var clients = [];
 
 //HTTP server
 
-var server = http.createServer(function(request, response) {
-  // Not important for us. We're writing WebSocket server,
-  // not HTTP server
-});
-server.listen(webSocketsServerPort, function() {
-  console.log('Websocket Server is listening on port ' + webSocketsServerPort);
-});
+// var server = http.createServer(function(request, response) {
+//   // Not important for us. We're writing WebSocket server,
+//   // not HTTP server
 
-//WebSocket server
-var wsServer = new webSocketServer({
-  // WebSocket server is tied to a HTTP server. WebSocket
-  // request is just an enhanced HTTP request. For more info
-  // http://tools.ietf.org/html/rfc6455#page-6
-  httpServer: server
-});
+// });
+
+// server.listen(webSocketsServerPort, function() {
+//   console.log('Websocket Server is listening on port ' + webSocketsServerPort);
+// });
+
+// const app = express();
+// const port = process.env.PORT || 8000;
+
+// console.log('App is listening on port ' + port);
+// app.listen(port);
 
 const app = express();
-const port = process.env.PORT || 8000;
+
+//WebSocket server
+// var wsServer = new webSocketServer({
+//   // WebSocket server is tied to a HTTP server. WebSocket
+//   // request is just an enhanced HTTP request. For more info
+//   // http://tools.ietf.org/html/rfc6455#page-6
+//   httpServer: app
+// });
 
 app.use('/api', require('./server/index.js'));
 app.use(bodyParser.json());
@@ -49,37 +60,41 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname + '/client/build/index.html'));
 });
 
-console.log('App is listening on port ' + port);
-app.listen(port);
+const server = app.listen(port, () => console.log('Listening on', port));
+const wss = new WebSocket({
+  server: server
+});
 
-wsServer.on('request', function(request) {
-  // accept connection - you should check 'request.origin' to
+wss.on('connection', function(ws) {
+  // accept connection - you should check 'ws.origin' to
   // make sure that client is connecting from your website
   // (http://en.wikipedia.org/wiki/Same_origin_policy)
-  var connection = request.accept(null, request.origin);
+
+  //var connection = ws.accept(null, ws.origin);
+  console.log(ws);
+  // let connection = ws;
   // we need to know client index to remove them on 'close' event
-  connection.id = uuid.v4();
-  let index = clients.push(connection);
+  ws.id = uuid.v4();
+  let index = clients.push(ws); //let index = clients.push(connection);
   console.log(new Date() + ' Connection accepted.');
-  console.log('Connected ---------------------- ', connection.id);
+  console.log('Connected ---------------------- ', ws.id);
   console.log(tempLoc);
 
   // user sent some message
-  connection.on('message', function(message) {
-    console.log('message ws fired');
-    if (message.type === 'utf8') {
-      let data = JSON.parse(message.utf8Data);
-      data.id = connection.id;
-      let finalData = tempLoc.filter(e => e.id !== connection.id);
-      tempLoc = [...finalData, data];
+  ws.on('message', function(message) {
+    let data = JSON.parse(message);
+    data.id = ws.id;
+    let finalData = tempLoc.filter(e => e.id !== ws.id);
+    tempLoc = [...finalData, data];
 
-      console.log('ws socket received -----', data);
-    }
+    console.log('temploc -----', tempLoc);
+    wss.clients.forEach(function each(client) {
+      client.send(JSON.stringify(tempLoc));
+    });
   });
 
   // user disconnected
-  connection.on('close', function(connection) {
-    clients.splice(index - 1, 1);
-    console.log(connection.remoteAddress + ' disconnected.'); // remove user from the list of connected clients
+  ws.on('close', function(connection) {
+    console.log(ws.id + ' disconnected.'); // remove user from the list of connected clients
   });
 });

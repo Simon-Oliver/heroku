@@ -4,12 +4,12 @@ import { w3cwebsocket as W3CWebSocket } from 'websocket';
 import './App.css';
 
 const socketProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-const echoSocketUrl = socketProtocol + '//' + window.location.hostname + ':8080';
+const echoSocketUrl = socketProtocol + '//' + window.location.hostname;
 
-const wsUrl = echoSocketUrl.includes('localhost') ? 'ws://192.168.1.3:8080' : echoSocketUrl;
+const wsUrl = echoSocketUrl.includes('localhost') ? 'ws://192.168.1.3:8000' : echoSocketUrl;
 
-const client = new W3CWebSocket(wsUrl);
-//const client = new WebSocket('ws://192.168.1.1:3000');
+const client = new W3CWebSocket(wsUrl, 'echo-protocol');
+// const client = new WebSocket('ws://192.168.1.3:8000');
 mapboxgl.accessToken =
   'pk.eyJ1Ijoic2ltb24tb2xpdmVyIiwiYSI6ImNrNXUyZ2U4bDBxeXQzbmxvY3piaXA3eXcifQ.XL9r5bMRqb-yAyHi0dRj3Q';
 
@@ -40,6 +40,10 @@ class App extends React.Component {
   componentDidMount() {
     client.onopen = socket => {
       console.log('WebSocket Client Connected', socket);
+    };
+
+    client.onmessage = message => {
+      console.log(JSON.parse(message.data));
     };
 
     var options = {
@@ -119,7 +123,6 @@ class App extends React.Component {
               coordinates: [this.state.long + i, this.state.lat + i]
             }
           };
-          console.log(geoJson);
           map.getSource(e.id).setData(geoJson);
         }, 2000);
 
