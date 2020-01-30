@@ -44,6 +44,7 @@ class App extends React.Component {
 
     client.onmessage = message => {
       console.log(JSON.parse(message.data));
+      this.setState({ other: [...JSON.parse(message.data)] });
     };
 
     var options = {
