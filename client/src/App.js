@@ -44,7 +44,13 @@ class App extends React.Component {
 
     client.onmessage = message => {
       console.log(JSON.parse(message.data));
-      this.setState({ other: [...JSON.parse(message.data)] });
+      const data = JSON.parse(message.data);
+
+      this.setState({ other: [data] });
+      if (data.type === 'remove') {
+        console.log(data.remove);
+        //map.removeLayer(data.remove);
+      }
     };
 
     var options = {

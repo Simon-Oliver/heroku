@@ -15,7 +15,7 @@ const port = process.env.PORT || 8000;
 // var http = require('http');
 
 //Temp. geo locations
-let tempLoc = [];
+var tempLoc = [];
 
 // list of currently connected clients (users)
 var clients = [];
@@ -80,6 +80,10 @@ wss.on('connection', function(ws) {
   console.log('Connected ---------------------- ', ws.id);
   console.log(tempLoc);
 
+  // wss.clients.forEach(function each(client) {
+  //   client.send(JSON.stringify({ type: 'add', id: ws.id, color: '#00000f' }));
+  // });
+
   // user sent some message
   ws.on('message', function(message) {
     let data = JSON.parse(message);
@@ -95,6 +99,10 @@ wss.on('connection', function(ws) {
 
   // user disconnected
   ws.on('close', function(connection) {
+    tempLoc = tempLoc.filter(e => e.id !== ws.id);
     console.log(ws.id + ' disconnected.'); // remove user from the list of connected clients
+    wss.clients.forEach(function each(client) {
+      client.send(JSON.stringify({ type: 'remove', remove: ws.id }));
+    });
   });
 });
