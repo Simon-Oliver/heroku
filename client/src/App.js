@@ -21,18 +21,18 @@ class App extends React.Component {
     acc: '',
     zoom: '2',
     other: [
-      {
-        id: 'Test1',
-        lat: 47.350242,
-        Long: 8.715513,
-        color: '#00000f'
-      },
-      {
-        id: 'Test2',
-        lat: 47.350262,
-        Long: 8.715533,
-        color: '#e24f4f'
-      }
+      // {
+      //   id: 'Test1',
+      //   lat: 47.350242,
+      //   Long: 8.715513,
+      //   color: '#00000f'
+      // },
+      // {
+      //   id: 'Test2',
+      //   lat: 47.350262,
+      //   Long: 8.715533,
+      //   color: '#e24f4f'
+      // }
     ]
   };
 
@@ -49,7 +49,7 @@ class App extends React.Component {
       this.setState({ other: [data] });
       if (data.type === 'remove') {
         console.log(data.remove);
-        //map.removeLayer(data.remove);
+        //map.removeSource(data.remove);
       }
     };
 
@@ -100,6 +100,7 @@ class App extends React.Component {
 
     map.on('load', () => {
       this.state.other.forEach((e, i) => {
+        // map.removeSource(e.id);
         map.loadImage(
           'https://upload.wikimedia.org/wikipedia/commons/a/a8/Ski_trail_rating_symbol_black_circle.png',
           function(error, image) {
